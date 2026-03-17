@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Trade Analyzer</title>
+<style>
+body {
+  margin:0; padding:0;
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg,#0f172a,#1e293b);
+  color: white;
+  text-align: center;
+}
+
+h1 {
+  margin-top: 40px;
+  font-size: 28px;
+  color: #22c55e;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.box {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+button {
+  width: 75%;
+  padding: 14px;
+  margin: 10px 0;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 10px;
+  border: 2px solid #22c55e;
+  background: #111827;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #22c55e;
+  color: black;
+}
+
+#resultDiv {
+  margin-top: 30px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #22c55e;
+  min-height: 40px;
+  text-shadow: 1px 1px 2px #000;
+}
+
+canvas {
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<h1>🤖 AI Trade Analyzer</h1>
+
+<div class="box">
+  <button onclick="upload()">1️⃣ Upload Photo</button>
+  <button onclick="analyze()">2️⃣ Analyze</button>
+  <button onclick="showUp()">3️⃣ UP %</button>
+  <button onclick="showDown()">4️⃣ DOWN %</button>
+  <button onclick="checkSafe()">5️⃣ Safe / Danger</button>
+</div>
+
+<div id="resultDiv">Waiting for action...</div>
+
+<input type="file" id="imgInput" accept="image/*">
+<canvas id="canvas"></canvas>
+
+<script>
+let upChance = 50;
+let downChance = 50;
+
+// Upload Photo
+function upload(){
+  document.getElementById('imgInput').click();
+}
+
+document.getElementById('imgInput').addEventListener('change', function(e){
+  let file = e.target.files[0];
+  if(!file) return;
+  let img = new Image();
+  img.onload = function(){
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img,0,0);
+    document.getElementById('resultDiv').innerHTML = "Photo Uploaded ✅";
+  };
+  img.src = URL.createObjectURL(file);
+});
+
+// Analyze Image
+function analyze(){
+  let canvas = document.getElementById('canvas');
+  let ctx = canvas.getContext('2d');
+  if(canvas.width===0 || canvas.height===0){
+    document.getElementById('resultDiv').innerHTML = "❌ Upload photo first!";
+    return;
+  }
+  let data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  let green=0, red=0;
+  for(let i=0;i<data.length;i+=4){
+    let r=data[i], g=data[i+1], b=data[i+2];
+    if(g>r && g>b) green++;
+    else if(r>g && r>b) red++;
+  }
+  let total = green + red;
+  upChance = Math.floor((green/total)*100)||50;
+  downChance = 100-upChance;
+  document.getElementById('resultDiv').innerHTML = "Analysis Done ✅";
+}
+
+// Show UP %
+function showUp(){
+  document.getElementById('resultDiv').innerHTML = "📈 UP Chance: " + upChance + "%";
+}
+
+// Show DOWN %
+function showDown(){
+  document.getElementById('resultDiv').innerHTML = "📉 DOWN Chance: " + downChance + "%";
+}
+
+// Safe / Danger
+function checkSafe(){
+  let msg = "";
+  if(upChance >= 70) msg = "✅ SAFE for UP";
+  else if(downChance >= 70) msg = "❌ DANGER (DOWN)";
+  else msg = "⚠️ WAIT / UNCERTAIN";
+  document.getElementById('resultDiv').innerHTML = msg;
+}
+</script>
+
+</body>
+</html>
